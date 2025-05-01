@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="UNISafe: Uncertainty-aware Latent Safety Filters that unifies reachability analysis in a latent world model with OOD detection to prevent both known and unseen safety hazards in hard-to-model vision-based tasks.">
+  <meta property="og:title" content="Uncertainty-aware Latent Safety Filters
+  for Avoiding Out-of-Distribution Failures"/>
+  <meta property="og:description" content="SOCIAL MEDIA DESCRIPTION TAG TAG"/>
+  <meta property="og:url" content="URL OF THE WEBSITE"/>
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+  <meta property="og:image" content="static/image/your_banner_image.png" />
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+
+
+  <meta name="twitter:title" content="TWITTER BANNER TITLE META TAG">
+  <meta name="twitter:description" content="TWITTER BANNER DESCRIPTION META TAG">
+  <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+  <meta name="twitter:image" content="static/images/your_twitter_banner_image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords" content="KEYWORDS SHOULD BE PLACED HERE">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title>Uncertainty-aware Latent Safety Filters
+    for Avoiding Out-of-Distribution Failures</title>
+  <link rel="icon" type="image/x-icon" href="static/images/intent_logo_icon_transparent-highQuality.png">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+  rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+</head>
+<body>
+
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title"><span style="color: #ff9500; font-style: italic; font-weight: bold;">UNISafe: </span>Uncertainty-aware Latent Safety Filters
+              for Avoiding Out-of-Distribution Failures</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block">
+                <a href="https://junwon.me/" target="_blank">Junwon Seo</a>,</span>
+                <span class="author-block">
+                  <a href="https://kensukenk.github.io/" target="_blank">Kensuke Nakamura</a>,</span>
+                  <span class="author-block">
+                    <a href="https://www.cs.cmu.edu/~abajcsy/" target="_blank">Andrea Bajcsy</a>
+                  </span>
+                  </div>
+
+                  <div class="is-size-5 publication-authors">
+                    <span class="author-block">Carnegie Mellon University<br>Under Review, 2025</span>
+                  </div>
+
+                  <div class="column has-text-centered">
+                    <div class="publication-links">
+                         <!-- Arxiv PDF link -->
+                      <span class="link-block">
+                        <a href="https://arxiv.org/pdf/<ARXIV PAPER ID>.pdf" target="_blank"
+                        class="external-link button is-normal is-rounded is-dark">
+                        <span class="icon">
+                          <i class="fas fa-file-pdf"></i>
+                        </span>
+                        <span>Paper</span>
+                      </a>
+                    </span>
+
+                  <!-- Github link -->
+                  <span class="link-block">
+                    <a href="https://github.com/YOUR REPO HERE" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code [coming soon]</span>
+                  </a>
+                </span>
+
+                <!-- ArXiv abstract Link -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/<ARXIV PAPER ID>" target="_blank"
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Paper abstract -->
+
+
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Recent advances in generative world models have enabled classical safe control methods, such as Hamilton-Jacobi (HJ) reachability, to generalize to complex robotic systems operating directly from high-dimensional sensor observations. However, obtaining comprehensive coverage of all safety-critical scenarios during world model training is extremely challenging. As a result, latent safety filters built on top of these models may miss novel hazards and even fail to prevent known ones, overconfidently misclassifying risky out-of-distribution (OOD) situations as safe. To address this, we introduce an uncertainty-aware latent safety filter that proactively steers robots away from both known and unseen failures. Our key idea is to use the world model's epistemic uncertainty as a proxy for identifying unseen potential hazards. We propose a principled method to detect OOD world model predictions by calibrating an uncertainty threshold via conformal prediction. By performing reachability analysis in an augmented state space--spanning both the latent representation and the epistemic uncertainty--we synthesize a latent safety filter that can reliably safeguard arbitrary policies from both known and unseen safety hazards. In simulation and hardware experiments on vision-based control tasks with a Franka manipulator, we show that our uncertainty-aware safety filter preemptively detects potential unsafe scenarios and reliably proposes safe, in-distribution actions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End paper abstract -->
+
+
+<!-- OOD Imagination Image -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Challenge: Unreliable WM Can Result in <span style="color: rgb(116, 12, 173); font-style: italic;">OOD failures</span>.</h2>
+        <div class="content has-text-justified">
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/running.png" alt="Description" width="500">
+            </div>
+          </p>
+          <p>While latent safety filters can compute control strategies that prevent hard-to-model failures, their training and runtime filtering rely on imagined futures generated by the latent dynamics model. However, a pretrained world model can hallucinate in uncertain scenarios where it lacks knowledge, leading to <span style="color: rgb(116, 12, 173); font-style: italic;">OOD failures</span>.</p>
+          <p>Consider the simple example in Figure above where a Dubins car must avoid two failure sets: a circular grey and a rectangular purple region. The world model is trained with RGB images of the environment and angular velocity actions, but the model training data is limited, lacking knowledge of the robot entering the purple failure set. When the world model imagines an action sequence in which the robot enters this region, the world model hallucinates as soon as the scenario goes out-of-distribution: the robot teleports away from the failure region and to a safe state. This phenomenon leads to latent safety filters that cannot prevent unseen failures, and even known failures, due to optimistic safety estimates of uncertain out-of-distribution scenarios.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Image -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3"><span style="color: #ff9500; font-style: italic; font-weight: bold;">UNISafe</span><strong><em>: UNcertainty-aware Imagination for Safety filtering</em></strong></h2>
+        <div class="content has-text-justified">
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/main.png" alt="Description" width="1500">
+            </div>
+            (Left): We quantify the world model’s epistemic uncertainty for detecting unseen failures in latent space and calibrate an uncertainty threshold via conformal prediction, resulting in an OOD failure set. (Center): Uncertainty-aware latent reachability analysis synthesizes a safety monitor and fallback policy that steers the system away from both known and OOD failures. (Right): Our safety filter reliably safeguards arbitrary task policies during hard-to-model vision-based tasks, like a teleoperator playing the game of Jenga.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dubins Image -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Benchmark Safe Control Task with a 3D Dubins Car</h2>
+        <div class="content has-text-justified">
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/dubins_ood.png" alt="Description" width="500">
+            </div>
+          </p>
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/dubins_quantitative.png" alt="Description" width="500">
+            </div>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Isaac Image -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Simulation: Block Plucking</h2>
+        <div class="content has-text-justified">
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/isaac_results.png" alt="Description" width="800">
+            </div>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Jenga Image -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Hardware Experiments: Vision-based Jenga with a Robotic Manipulator</h2>
+        <div class="content has-text-justified">
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/jenga_results.png" alt="Description" width="1100">
+            </div>
+          </p>
+          <p>
+            <div style="text-align: center;">
+              <img src="static/images/jenga_quantitative.png" alt="Description" width="300">
+            </div>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!--BibTex citation -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>BibTex Code Here</code></pre>
+    </div>
+</section>
+<!--End BibTex citation -->
+
+
+  <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Statcounter tracking code -->
+  
+<!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+    <!-- End of Statcounter Code -->
+
+  </body>
+  </html>

@@ -1,0 +1,514 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+    <!-- Replace the content tag with appropriate information -->
+    <meta name="description" content="Latent Safety Filters extend HJ reachability to prevent failures in robotics using latent-space safety analysis on high-dimensional observations." />
+    <meta property="og:title" content="Generalizing Safety Beyond Collision-Avoidance via Latent-Space
+    Reachability Analysis" />
+    <meta property="og:title" content="Generalizing Safety Beyond Collision-Avoidance via Latent-Space
+    Reachability Analysis" />
+    <meta
+      property="og:description"
+      content="Hamilton-Jacobi (HJ) reachability is a rigorous
+      mathematical framework that enables robots to simultaneously
+      detect unsafe states and generate actions that prevent future
+      failures. While in theory, HJ reachability can synthesize safe
+      controllers for nonlinear systems and nonconvex constraints,
+      in practice, it has been limited to hand-engineered collision-
+      avoidance constraints modeled via low-dimensional state-space
+      representations and first-principles dynamics. In this work, our
+      goal is to generalize safe robot controllers to prevent failures
+      that are hard—if not impossible—to write down by hand, but
+      can be intuitively identified from high-dimensional observations:
+      for example, spilling the contents of a bag. We propose Latent
+      Safety Filters, a latent-space generalization of HJ reachability that
+      tractably operates directly on raw observation data (e.g., RGB
+      images) by performing safety analysis in the latent embedding
+      space of a generative world model. This transforms nuanced
+      constraint specification to a classification problem in latent space
+      and enables reasoning about dynamical consequences that are
+      hard to simulate. In simulation and hardware experiments, we
+      use Latent Safety Filters to safeguard arbitrary policies (from
+      generative policies to direct teleoperation) from complex safety
+      hazards, like preventing a Franka Research 3 manipulator from
+      spilling the contents of a bag or toppling cluttered objects."
+    />
+    <meta property="og:url" content="https://kensukenk.github.io/latent-safety/" />
+    <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X630-->
+    <meta property="og:image" content="static/image/frontfig_latentsafety3" />
+
+    <meta name="twitter:title" content="Generalizing Safety Beyond Collision-Avoidance via Latent-Space
+    Reachability Analysis" />
+    <meta
+      name="twitter:description"
+      content="Hamilton-Jacobi (HJ) reachability is a rigorous
+      mathematical framework that enables robots to simultaneously
+      detect unsafe states and generate actions that prevent future
+      failures. While in theory, HJ reachability can synthesize safe
+      controllers for nonlinear systems and nonconvex constraints,
+      in practice, it has been limited to hand-engineered collision-
+      avoidance constraints modeled via low-dimensional state-space
+      representations and first-principles dynamics. In this work, our
+      goal is to generalize safe robot controllers to prevent failures
+      that are hard—if not impossible—to write down by hand, but
+      can be intuitively identified from high-dimensional observations:
+      for example, spilling the contents of a bag. We propose Latent
+      Safety Filters, a latent-space generalization of HJ reachability that
+      tractably operates directly on raw observation data (e.g., RGB
+      images) by performing safety analysis in the latent embedding
+      space of a generative world model. This transforms nuanced
+      constraint specification to a classification problem in latent space
+      and enables reasoning about dynamical consequences that are
+      hard to simulate. In simulation and hardware experiments, we
+      use Latent Safety Filters to safeguard arbitrary policies (from
+      generative policies to direct teleoperation) from complex safety
+      hazards, like preventing a Franka Research 3 manipulator from
+      spilling the contents of a bag or toppling cluttered objects."
+    />
+    <!-- Path to banner image, should be in the path listed below. Optimal dimenssions are 1200X600-->
+    <meta
+      name="twitter:image"
+      content="static/images/frontfig_latentsafety3.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Keywords for your paper to be indexed by-->
+    <meta name="keywords" content="Hamilton-Jacobi, Reachability, Safety, Robotics, Latent Space, Safety Filters, Safety Analysis, Generative World Model, Safety Policy" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>
+      Generalizing Safety Beyond Collision-Avoidance via Latent-Space
+      Reachability Analysis
+    </title>
+    <link rel="icon" type="image/x-icon" href="static/images/intent_logo_icon_transparent-highQuality.png" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="static/css/bulma.min.css" />
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css" />
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css" />
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css"
+    />
+    <link rel="stylesheet" href="static/css/index.css" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+    <script defer src="static/js/fontawesome.all.min.js"></script>
+    <script src="static/js/bulma-carousel.min.js"></script>
+    <script src="static/js/bulma-slider.min.js"></script>
+    <script src="static/js/index.js"></script>
+    <style>
+      h6 {text-align: center;}
+
+      .video-container {
+          display: grid;
+          grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+          gap: 10px; /* Optional: Adds space between videos */
+      }
+      video {
+          width: 100%; /* Ensure the video fills the column */
+      }
+  </style>
+  </head>
+  <body>
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <h1
+                class="title is-1 publication-title"
+                style="font-size: 2.7rem"
+              >
+                Generalizing Safety Beyond Collision-Avoidance via Latent-Space
+                Reachability Analysis
+              </h1>
+
+              <div class="is-size-5 publication-authors">
+                <span class="author-block">
+                  <a href="//kensukenk.github.io/" target="_blank">Kensuke Nakamura</a
+                  ><sup>1</sup>,</span
+                >
+                <span class="author-block">
+                  <a href="https://lasse-peters.net/" target="_blank"
+                    >Lasse Peters</a
+                  ><sup>2</sup>,</span
+                >
+                <span class="author-block">
+                  <a href="https://www.cs.cmu.edu/~abajcsy/" target="_blank"
+                    >Andrea Bajcsy</a
+                  ><sup>1</sup>
+                </span>
+              </div>
+
+              <div class="is-size-5 publication-authors">
+
+                <span class="eql-cntrb"
+                  ><small
+                    ><br /><sup>1</sup>Carnegie Mellon University <sup>2</sup>Delft University of Technology</small
+                  ></span
+                >
+              </div>
+
+
+              <div class="column has-text-centered">
+                <div class="publication-links">
+                  <!-- Arxiv PDF link -->
+
+                  <span class="link-block">
+                    <a
+                      href="https://arxiv.org/pdf/2502.00935"
+                      target="_blank"
+                      class="external-link button is-normal is-rounded is-dark"
+                    >
+                      <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                      </span>
+                      <span>Paper</span>
+                    </a>
+                  </span>
+
+
+
+                  <!-- Github link -->
+                  <span class="link-block">
+                    <a
+                      href=""
+                      target="_blank"
+                      class="external-link button is-normal is-rounded is-dark"
+                    >
+                      <span class="icon">
+                        <i class="fab fa-github"></i>
+                      </span>
+                      <span>Code [coming soon]</span>
+                    </a>
+                  </span>
+
+                  <!-- ArXiv abstract Link -->
+                  <span class="link-block">
+                    <a
+                      href="https://arxiv.org/abs/2502.00935"
+                      target="_blank"
+                      class="external-link button is-normal is-rounded is-dark"
+                    >
+                      <span class="icon">
+                        <i class="ai ai-arxiv"></i>
+                      </span>
+                      <span>arXiv</span>
+                    </a>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Teaser video-->
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <video poster="" id="tree" autoplay controls muted loop height="100%">
+            <!-- Your video here -->
+            <source src="static/videos/supplement_deanon.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </div>
+    </section>
+    <!-- End teaser video -->
+
+    <!-- Paper abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Abstract</h2>
+            <div class="content has-text-justified">
+              <p>
+                Hamilton-Jacobi (HJ) reachability is a rigorous
+                mathematical framework that enables robots to simultaneously
+                detect unsafe states and generate actions that prevent future
+                failures. While in theory, HJ reachability can synthesize safe
+                controllers for nonlinear systems and nonconvex constraints,
+                in practice, it has been limited to hand-engineered collision-
+                avoidance constraints modeled via low-dimensional state-space
+                representations and first-principles dynamics. In this work, our
+                goal is to generalize safe robot controllers to prevent failures
+                that are hard—if not impossible—to write down by hand, but
+                can be intuitively identified from high-dimensional observations:
+                for example, spilling the contents of a bag. We propose Latent
+                Safety Filters, a latent-space generalization of HJ reachability that
+                tractably operates directly on raw observation data (e.g., RGB
+                images) by performing safety analysis in the latent embedding
+                space of a generative world model. This transforms nuanced
+                constraint specification to a classification problem in latent space
+                and enables reasoning about dynamical consequences that are
+                hard to simulate. In simulation and hardware experiments, we
+                use Latent Safety Filters to safeguard arbitrary policies (from
+                generative policies to direct teleoperation) from complex safety
+                hazards, like preventing a Franka Research 3 manipulator from
+                spilling the contents of a bag or toppling cluttered objects.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paper abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Method</h2>
+            <div class="content has-text-justified">
+              <p>
+                <div style="text-align: center;">
+                  <img src="static/images/frontfig_latentsafety3.png" alt="Description" width="1100">
+                </div>
+
+                Our Latent Safety Filter can detect, predict, and mitigate failures that are hard to model (e.g., spilling the contents of
+                a bag), such as those encountered in vision-based manipulation. Our idea is to perform approximate reachability analysis in
+                the latent space of a world model (light grey region). The latent failure set is shown as a black region, with an example of an
+                imagined failure observation shown in the upper right. Our method identifies latent states from which the robot is doomed to
+                enter visually-observable failures no matter what actions it takes (larger red set shown above), and automatically overrides the
+                base policy with safety-preserving actions from our safety policy to prevent spilling the content of the bag.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Paper abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Case Study: Dubin's Car</h2>
+            <div class="content has-text-justified">
+              <p>
+                We start by studying a canonical safe-control benchmark:
+                collision-avoidance of a static obstacle with a vehicle. Because
+                this is a standard, low-dimensional benchmark, we can rigorously compare the quality of the safety filter to an exact
+                grid-based solution and a privileged-state RL-based safety filter.
+                <div style="text-align: center;">
+                  <img src="static/images/latent-vs-priv-brts.png" alt="Description" width="1100">
+                </div>
+                We train an RSSM using 2000 offline trajectories consisting of randomly sampled actions and conduct reachability analysis in the
+                learned latent space of the world model. Our latent safety filter is comparable to the privileged state RL-baseline (PrivilegedSafe) and has an F1 score of 0.982
+
+                <div style="text-align: center;">
+                  <img src="static/images/dubins_latent_table.png" alt="Description" width="1100">
+                </div>
+
+
+                In the main manuscript, we also investigate the effect of the biased world model training data on the downstream safety filter.
+                </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paper abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Simulation Experiments</h2>
+            <div class="content has-text-justified">
+              <p>
+                We study the ability of our latent safety filter to prevent a 7-DoF Franka Research 3 manipulator from knocking over the
+                red blocks while allowing it to pick up the green blocks. We apply our latent Hamilton-Jacobi reachability analysis in the latent space of
+                a recurrent state-space model (RSSM). We show successful filtered rollouts below.
+                <br>
+                <div class="video-container">
+                  <video controls>
+                      <source src="static/videos/sim_success.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                  </video>
+                  <video controls>
+                      <source src="static/videos/sim_success2.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                  </video>
+                </div>
+                <br>
+                We compare our method (LatentSafe) to an unfiltered task policy trained with DreamerV3 using negative rewards for constraint violations (Dreamer), and a constrained MDP-based
+                method (SQRL). Our latent Hamilton-Jacobi safety exhibit the safest behavior while still allowing the robot to achieve its task.
+                <br>
+                <div style="text-align: center;">
+                  <img src="static/images/sim_table.png" alt="Description" width="1100">
+                </div>
+
+
+
+                </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Hardware Experiments</h2>
+            <div class="content has-text-justified">
+              <p>
+                We test our latent safety filter on hardware on a contact-rich manipulation task: picking up an opened bag of Skittles. Our safety specification is not allowing any skittles in the bag to fall out.
+
+                <h6 class="title is-3">Direct Teleoperation (no filter)</h2>
+                <br>
+                <video width="640" height="360" controls>
+                  <source src="static/videos/spill_fail.mp4" type="video/mp4">
+                </video>
+
+                <br>
+                This is challenging due to the partial observability
+                and uncertain dynamics of the overall environment. We conduct reachability analysis in the latent space of DINO-WM, a ViT-based world model
+                that uses the patch tokens of DINOv2 as a latent state.
+                <br>
+                <br>
+
+                <h6 class="title is-3">Teleoperation with Latent Safety Filter</h2>
+                <video width="640" height="360" controls>
+                  <source src="static/videos/one_shot_plot_lowres.mp4" type="video/mp4">
+                </video>
+                <br>
+
+
+                Notably, our policy is entirely agnostic to the base policy used to perform the task. This means we are even able to shield
+                a human teleoperating the robot.
+
+                <br>
+                <div style="text-align: center;">
+                  <img src="static/images/teleop_val.png" alt="Description" width="1100">
+                </div>
+
+
+                We also stress-test our latent safety filter on out-of-distribution bags. We find that our latent safety filter can zero-shot generalize to skittle bags of different colors, or background changes.
+                <br>
+                <video width="640" height="360" controls>
+                  <source src="static/videos/latent-ood-low.mov">
+                </video>
+                We hypothesize that this generalization capability is due to the strong pretrained visual representation in DINOv2.
+                </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paper abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Failure Modes</h2>
+            <div class="content has-text-justified">
+              <p>
+                Our latent safety filter is not without limitations. Despited being grounded in rigorous theory,
+                our method does not ensure safety in all cases. This is a natural consequence of using learned world models and learning-based approximations
+                of the Hamilton-Jacobi value function in our experiments. Quantifying the inaccuracies and understanding how these
+                latent safety filters fail is an exciting direction for future work.
+                <br>
+                In simulation, we find that our value function can
+                occassionally allow the robot to take an unsafe action. We believe that this can be attributed to the quality
+                of the world model not correctly predicting the consequences of a given action. We show a failure mode below.
+                <br>
+
+                <video width="640" height="360" controls>
+                  <source src="static/videos/sim_failuremode.mp4" type="video/mp4">
+                </video>
+
+
+                <br>
+
+                Our hardware experiments also exhibit non-zero failure rates. We believe that a large reason for this
+                is due to the partial observability of the skittle bag pick up task. It is unclear from the persepective of
+                the robot where the locations of the skittles inside the bag are. As such, occassionally the filter allows 1-2
+                skittles to fall out of the bag. We show a video of this failure mode below.
+                <br>
+                <video width="640" height="360" controls>
+                  <source src="static/videos/hw_failuremode.mp4" type="video/mp4">
+                </video>
+                
+
+                We also demonstrate a more severe failure mode that arises when the opened end of the bag is unobservable from the wrist or front-facing camera.
+                <br>
+                <video width="640" height="360" controls>
+                  <source src="static/videos/latent-pomdp-low.mov">
+                </video>
+
+                </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!--BibTex citation -->
+    <section class="section" id="BibTeX">
+      <div class="container is-max-desktop content">
+        <h2 class="title">BibTeX</h2>
+        <pre><code>@article{nakamura2025generalizing,
+          title={Generalizing Safety Beyond Collision-Avoidance via Latent-Space Reachability Analysis},
+          author={Nakamura, Kensuke and Peters, Lasse and Bajcsy, Andrea},
+          year={2025}
+        }</code></pre>
+      </div>
+    </section>
+    <!--End BibTex citation -->
+
+    <footer class="footer">
+      <div class="container">
+        <div class="columns is-centered">
+          <div class="column is-8">
+            <div class="content">
+              <p>
+                This page was built using the
+                <a
+                  href="https://github.com/eliahuhorwitz/Academic-project-page-template"
+                  target="_blank"
+                  >Academic Project Page Template</a
+                >
+                which was adopted from the <a
+                  href="https://nerfies.github.io"
+                  target="_blank"
+                  >Nerfies</a
+                > project page. You are free to borrow the source code of this
+                website, we just ask that you link back to this page in the
+                footer. <br />
+                This website is licensed under a
+                <a
+                  rel="license"
+                  href="http://creativecommons.org/licenses/by-sa/4.0/"
+                  target="_blank"
+                  >Creative Commons Attribution-ShareAlike 4.0 International
+                  License</a
+                >.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Statcounter tracking code -->
+
+    <!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+    <!-- End of Statcounter Code -->
+  </body>
+</html>
