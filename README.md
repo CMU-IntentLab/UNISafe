@@ -34,7 +34,7 @@ The project is organized into separate branches:
 git checkout dubins
 ```
 
-* **`isaaclab`**: Block-plucking tasks implemented in NVIDIA Isaac Gym. [Link](https://github.com/CMU-IntentLab/UNISafe/tree/isaaclab)
+* **`isaaclab`**: Block-plucking tasks implemented in NVIDIA IsaacLab. [Link](https://github.com/CMU-IntentLab/UNISafe/tree/isaaclab)
 
 ```bash
 git checkout isaaclab
