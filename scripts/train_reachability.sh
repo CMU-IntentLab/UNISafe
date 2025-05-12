@@ -1,0 +1,3 @@
+python scripts/train_dubins_reachability.py --remark expert --dataset_path {dataset_path} --wm_ckpt {wm_log:pretrain_joint.pt} --lx_ckpt {wm_log:classifier.pt} --use_ensemble True --warmup False --ood_thr 4.0 --maxUpdates 50000 --checkPeriod 1000 --ood_penalty -2.5
+
+python scripts/train_dubins_reachability_uqonly.py --remark uq_only --dataset_path {dataset_path} --wm_ckpt {wm_log:pretrain_joint.pt} --ood_thr 3.9 --warmup False

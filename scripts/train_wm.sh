@@ -1,0 +1,1 @@
+python scripts/train_dubins_wm.py --remark expert --dataset_path datasets/dubins_expert_random.pkl --eval_dataset_path datasets/dubins_expert_random.pkl

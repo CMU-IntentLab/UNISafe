@@ -1,0 +1,2 @@
+python scripts/generate_data_traj_failure_expert.py --num_pts 1000 --num_random 1000 --save_path datasets/dubins_expert_random.pkl
+python scripts/generate_data_traj_uncertainty.py --num_pts 1000 --save_path datasets/dubins_uncertainty.pkl

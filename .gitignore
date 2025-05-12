@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# PyTorch and TF checkpoints
+*.ckpt
+*.pth
+*.pt
+*.pb
+
+# Ignore logs directory
+logs/
+wandb/
+
+# Ignore all pickle files under datasets/
+datasets/*.pkl
+
+# Ignore temporary files
+*.log
+*.tmp
+*.swp
+
+# VS Code
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Python egg metadata
+*.egg-info/
+dist/
+build/
