@@ -1,0 +1,10 @@
+torch==2.4.1
+matplotlib==3.5.0
+ruamel.yaml==0.17.4
+moviepy==1.0.3
+einops==0.3.0
+protobuf==3.20.0
+gym==0.22.0
+mujoco==2.3.5
+opencv-python==4.7.0.72
+numpy==1.23.5
