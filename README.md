@@ -7,8 +7,7 @@ We recommend using [Miniconda](https://docs.conda.io/en/latest/miniconda.html) t
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/dubins-latent-safety.git
-cd dubins-latent-safety
+git clone https://github.com/CMU-IntentLab/UNISafe.git
 
 # Create and activate conda environment
 conda env create -f environment.yaml
