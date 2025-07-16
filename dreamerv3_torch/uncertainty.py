@@ -80,28 +80,12 @@ class OneStepPredictor(nn.Module):
             with torch.no_grad():
                 ensemble_outputs = self._networks(inputs)
                 div = ensemble_outputs[-1]
-
-                if self._config.use_max_variance:
-                    std_list = []
-                    for i in range(len(ensemble_outputs)-1):
-                        std = torch.exp(ensemble_outputs[i][1]).mean(dim=-1)
-                        std_list.append(std.unsqueeze(-1))
-                    std_max = torch.log(torch.max(torch.stack(std_list, dim=-1), dim=-1).values)
-                    return std_max
             
             div = div.view(N, T, -1)
         else:
             with torch.no_grad():
                 ensemble_outputs = self._networks(inputs)
                 div = ensemble_outputs[-1]
-
-                if self._config.use_max_variance:
-                    std_list = []
-                    for i in range(len(ensemble_outputs)-1):
-                        std = torch.exp(ensemble_outputs[i][1]).mean(dim=-1)
-                        std_list.append(std.unsqueeze(-1))
-                    std_max = torch.log(torch.max(torch.stack(std_list, dim=-1), dim=-1).values)
-                    return std_max
 
         if self._config.disag_log:
             div = torch.log(div)

@@ -1,5 +1,4 @@
 defaults:
-
   # RL paramters
   maxUpdates: 200000
   memoryCapacity: 500000
@@ -8,28 +7,26 @@ defaults:
   actor_lr: 1e-4
   critic_lr: 1e-4
 
-  remark: "takeoff_continuous_uncertainty_only_batch"
+  use_ensemble: True
+  use_unit_ensemble: False 
+  use_nf: False
+  use_uq: True
+  action_reg: False
+  model_free: False
+  remark: 'test'
   rand_action: False
-  model_path: 'source/latent_safety/dreamerv3_torch/logs/takeoff/0127/171603_offline_uncertainty_only/latest.pt'
-  # 'source/latent_safety/dreamerv3_torch/logs/takeoff/0127/174340_offline_failure/latest.pt'
-  # 'source/latent_safety/dreamerv3_torch/logs/takeoff/0121/112309_offline_largedata/latest.pt'
-  #'source/latent_safety/dreamerv3_torch/logs/takeoff/0120/223232_offline_largedata/latest.pt'
+  model_path: null
   offline_traindir: [
-  'source/latent_safety/takeoff/expert_dataset/expert_2/',
-  'source/latent_safety/takeoff/expert_dataset/expert_random/',
-  'source/latent_safety/dreamerv3_torch/logs/takeoff/auto_demo'
   ]
   reachability_batch_size: 512
-  reachability_model_path: null
+  reachability_model_path: ''
   gamma_reachability: 0.95
   ood_threshold: 4.0
   control_net: [512, 512, 512, 512]
   critic_net: [512, 512, 512, 512]
   stochastic_l: False
-  use_ensemble_RSSM: False
-  use_ensemble: True
-  use_nf: False # True
-  logdir: "source/latent_safety/reachability_dreamer/logs/takeoff_reachability_continuous"
+
+  logdir: "latent_safety/reachability_dreamer/logs"
   traindir: null
   evaldir: null
   offline_evaldir: ''
@@ -73,7 +70,7 @@ defaults:
   dyn_mean_act: 'none'
   dyn_std_act: 'sigmoid2'
   dyn_min_std: 0.1
-  grad_heads: ['decoder', 'reward', 'cont']
+  grad_heads: ['decoder', 'reward', 'cont', 'failure']
   units: 512
   act: 'SiLU'
   norm: True
@@ -89,6 +86,8 @@ defaults:
     {layers: 2, dist: 'symlog_disc', loss_scale: 1.0, outscale: 0.0}
   cont_head:
     {layers: 2, loss_scale: 1.0, outscale: 1.0}
+  failure_head:
+    {layers: 2, loss_scale: 1.0, outscale: 1.0}
   dyn_scale: 0.5
   rep_scale: 0.1
   kl_free: 1.0
@@ -97,8 +96,8 @@ defaults:
   initial: 'learned'
 
   # Training
-  batch_size: 8
-  batch_length: 16 #64
+  batch_size: 16
+  batch_length: 16
   train_ratio: 512
   pretrain: 100
   model_lr: 1e-4

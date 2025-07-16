@@ -185,7 +185,7 @@ if __name__ == "__main__":
 	config, remaining = parser.parse_known_args()
 
 	yaml = yaml.YAML(typ="safe", pure=True)
-	configs = yaml.load((Path(sys.argv[0]).parent / "config_failure.yaml").read_text())
+	configs = yaml.load((Path(sys.argv[0]).parent / "config.yaml").read_text())
 	name_list = ["defaults", *config.configs] if config.configs else ["defaults"]
 
 	defaults = {}
