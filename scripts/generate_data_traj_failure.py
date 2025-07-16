@@ -108,6 +108,8 @@ def gen_one_traj_img(x_min, x_max, y_min, y_max, u_max, dt, v, dpi, rand=-1, sav
         s=20, color='black', zorder=3
     )
 
+    import pdb; pdb.set_trace()
+
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
     if save :

@@ -16,7 +16,7 @@ __pycache__/
 *.pb
 
 # Ignore logs directory
-logs/
+# logs/
 wandb/
 
 # Ignore all pickle files under datasets/
