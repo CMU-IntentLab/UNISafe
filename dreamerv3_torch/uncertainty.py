@@ -49,7 +49,6 @@ class OneStepPredictor(nn.Module):
                                                  explore_var='jrd', 
                                                  residual=True)
         
-        # torch.backends.cudnn.benchmark = True #FIXME -> Deterministic Run!!!!!
         
         self.criterion = self.gaussian_nll_loss 
         
@@ -92,53 +91,10 @@ class OneStepPredictor(nn.Module):
 
         return div
     
-    def train_ensemble_penn(self, inputs, targets):
-        self._networks.train()
-        with torch.cuda.amp.autocast(self._use_amp):
-            if self._config.disag_offset:
-                targets = targets[:, self._config.disag_offset :]
-                inputs = inputs[:, : -self._config.disag_offset]
-
-            targets = targets.detach()
-            inputs = inputs.detach()
-            
-            train_loss = torch.FloatTensor([0]).cuda()
-            N, T, D = inputs.shape
-            inputs = inputs.reshape(N * T, D)
-
-            for i in range(self.config.disag_models):                
-                (mu, log_std) = self._networks.single_forward(
-                    inputs, index=i)
-                
-                mu = mu.view(N, T, -1)
-                log_std = log_std.reshape(N, T, -1)
-
-                yhat_mu = mu
-                var = torch.square(torch.exp(log_std))
-                loss = self.gaussian_nll_loss(yhat_mu, targets, var)
-                loss = loss.mean()
-                self._expl_opt(loss, self._networks.parameters())
-                
-                train_loss += loss
-
-        metrics = {"ensemble_loss": train_loss.item() / self.config.disag_models}
-
-        with torch.no_grad():
-            div = self.intrinsic_reward_penn(inputs)
-        metrics["log_disagreement"] = div.cpu().numpy()
-
-        return metrics
-    
     def train_ensemble_penn_fixed(self, feats, actions, targets, is_first):
         self._networks.train()
         with torch.cuda.amp.autocast(self._use_amp):
 
-            # inputs = torch.concat([feats, actions], -1)
-            # inputs = inputs[:, :-1] # N, T-1
-            # actions = actions[:, 1:] # N, T-1
-            # targets = targets[:, 1:] # N, T-1
-
-            # inputs = torch.concat([feats, actions], -1)
             feats = feats[:, :-1] # N, T-1
             actions = actions[:, 1:] # N, T-1
             inputs = torch.concat([feats, actions], -1)
@@ -369,16 +325,6 @@ class DensityEstimator(nn.Module):
             nf.flows.LULinearPermute(input_dim)
             ]
 
-        # flows = [
-        #     nf.flows.CoupledRationalQuadraticSpline(num_input_channels=input_dim, num_blocks=2, num_hidden_channels=128),
-        #     nf.flows.LULinearPermute(input_dim),
-        #     nf.flows.CoupledRationalQuadraticSpline(num_input_channels=input_dim, num_blocks=2, num_hidden_channels=128),
-        #     nf.flows.LULinearPermute(input_dim),
-        #     nf.flows.CoupledRationalQuadraticSpline(num_input_channels=input_dim, num_blocks=2, num_hidden_channels=128),
-        #     nf.flows.LULinearPermute(input_dim)
-        #     ]
-        
-        # Construct flow model
         self._networks = nf.NormalizingFlow(q0=self.q0, flows=flows)
         self._networks = self._networks.cuda()
 
@@ -418,16 +364,7 @@ class DensityEstimator(nn.Module):
             torch.use_deterministic_algorithms(False)
             log_prob = self._networks.log_prob(x)
             torch.use_deterministic_algorithms(True)
-
-            prob = torch.ones_like(log_prob)
-            # prob[log_prob < 7000] = 0.
-            # prob[log_prob < 6500] = 0.
-            prob[log_prob < 6000] = 0.
-            prob = prob.view(N, T)
-
-            # prob = torch.exp(log_prob).view(N, T)
-            # prob[torch.isnan(prob)] = 0
-            # print(torch.isnan(prob).sum())
+            prob = torch.exp(log_prob).view(N, T)
             prob = torch.clamp(prob, min=0, max=1)
             self._networks.train()
         
@@ -435,13 +372,7 @@ class DensityEstimator(nn.Module):
             torch.use_deterministic_algorithms(False)
             log_prob = self._networks.log_prob(x)
             torch.use_deterministic_algorithms(True)
-            # prob = torch.exp(log_prob)
-            # print(log_prob.min(), log_prob.max())
-            # prob[torch.isnan(prob)] = 0
-            
-            prob = torch.ones_like(log_prob)
-            prob[log_prob < 6000] = 0.
-            # print(log_prob, prob)
+            prob = torch.exp(log_prob)
             prob = torch.clamp(prob, min=0, max=1)
             self._networks.train()
 

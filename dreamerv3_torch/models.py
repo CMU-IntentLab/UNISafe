@@ -207,21 +207,6 @@ class WorldModel(nn.Module):
 				with torch.no_grad():
 					inputs = self.dynamics.get_feat(post)
 				
-					# if self._config.disag_action_cond:
-					# 	inputs = torch.concat(
-					# 		[inputs, torch.tensor(data["action"], device=self._config.device)],
-					# 		-1,
-					# 	)
-
-					# 	inputs = inputs[:, :-1] # N, T-1
-					# 	actions = data["action"][:, 1:]
-					# 	target = target[:, :-1]
-					# 	valid_idx = torch.roll(data["is_first"], shifts=-1, dims=1)[:, :-1] == 0.
-
-					# 	valid_inputs = inputs[valid_idx]
-					# 	valid_actions = actions[valid_idx]
-						
-				# ensemble_mets = ensemble.train_ensemble_penn(inputs, target) 
 				ensemble_mets = ensemble.train_ensemble_penn_fixed(inputs, data["action"], target, data["is_first"])
 				metrics.update({k: v for k, v in ensemble_mets.items()})
 
@@ -267,10 +252,9 @@ class WorldModel(nn.Module):
 				with torch.no_grad():
 					inputs = self.dynamics.get_feat(post)
 				
-				# FIXME: Finetuning ensemble!
+				#  Finetuning ensemble!
 				for _ in range(1): #range(5):
 					ensemble_mets = ensemble.train_ensemble_penn_fixed(inputs, data["action"], target, data["is_first"])
-				# ensemble_mets = ensemble.train_ensemble_penn(inputs, target) 
 				metrics = ensemble_mets
 
 		# Normalizing Flow Training!

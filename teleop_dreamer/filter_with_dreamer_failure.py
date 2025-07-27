@@ -116,27 +116,9 @@ class TeleoperationWithWM:
 			critic_dimList=critic_dimList
 		)
 
-		# self.config.reachability_model_path = \
-		# 'source/latent_safety/reachability_dreamer/logs/takeoff_reachability_failure/0129/211852_takeoff_sac_continuous_failure_batch/takeoff_sac_continuous_failure_batch'
-
 		# # ALL
 		step = 200000
-		# step = 50000
 
-		# # ALL
-		# self.config.reachability_model_path = \
-		# 'source/latent_safety/reachability_dreamer/logs/takeoff_reachability_failure/0131/131645_takeoff_sac_failure_all_batch/takeoff_sac_failure_all_batch'
-		# step = 200000
-
-		# Failure Only
-		# self.config.reachability_model_path = \
-		# 'source/latent_safety/reachability_dreamer/logs/takeoff_reachability_failure/0131/184956_takeoff_sac_failure_only/takeoff_sac_failure_only'
-		# step = 200000
-
-		# Uncertainty Only
-		# self.config.reachability_model_path = \
-		# 'source/latent_safety/reachability_dreamer/logs/takeoff_reachability_failure/0130/233508_takeoff_sac_failure_uncertaintyonly_batch/takeoff_sac_failure_uncertaintyonly_batch'
-		# step = 200000
 
 		if self.config.reachability_model_path:	
 			self.agent.restore(step, self.config.reachability_model_path)
@@ -311,85 +293,6 @@ class TeleoperationWithWM:
 		self.reset_episode()
 		return True
 
-	# def save_video(self):
-
-	# 	video = self.transitions['front_cam']  # List of frames (numpy arrays)
-    #      # List of frames (numpy arrays)
-	# 	uncertainties = self.transitions['uncertainty']  # List or array of uncertainties
-	# 	reachability = self.transitions['reachability']  # List or array of reachability values
-	# 	is_filtered = self.transitions['is_filtered']    # List or array of boolean flags
-	# 	failure = self.transitions['failure']    # List or array of boolean flags
-
-	# 	# Determine maximum uncertainty (95th percentile)
-	# 	max_uncertainty = np.quantile(uncertainties, 0.95)
-
-	# 	# Create directory for saving
-	# 	directory = pathlib.Path(self.save_dir).expanduser()
-	# 	directory.mkdir(parents=True, exist_ok=True)
-
-	# 	# Generate filename with max uncertainty
-	# 	current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-	# 	filename = directory / f"{max_uncertainty:.2f}_{current_time}.mp4"
-
-	# 	# Get video dimensions from the first frame
-	# 	height, width, channels = video[0].shape
-	# 	fps = 10  # Frames per second for the video
-
-	# 	# Initialize video writer
-	# 	fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for MP4
-	# 	video_writer = cv2.VideoWriter(str(filename), fourcc, fps, (width, height))
-
-	# 	# Font settings for overlay
-	# 	font = cv2.FONT_HERSHEY_SIMPLEX
-	# 	font_scale = 0.3
-	# 	font_color = (0, 255, 0)  # Green
-	# 	thickness = 1
-
-	# 	# Iterate through frames along with their uncertainties, reachability, and filter status
-	# 	for frame, uncertainty, reach, fail, filt in zip(video, uncertainties, reachability, failure, is_filtered):
-	# 		# Conditional RGB to BGR conversion
-	# 		if filt:
-	# 			# Convert RGB to BGR if the frame is filtered
-	# 			frame_bgr = frame.copy()
-	# 		else:
-	# 			# Assume frame is already in BGR
-	# 			frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)				
-
-	# 		# Prepare uncertainty text
-	# 		uncertainty_text = f"Uncertainty: {uncertainty:.2f}"
-	# 		# Prepare reachability text
-	# 		reachability_text = f"Reachability: {reach:.2f}"
-	# 		failure_text = f"Failure Pred: {fail:.2f}"
-
-	# 		# Define positions for the texts
-	# 		uncertainty_position = (10, height - 10)          # Bottom-left corner
-	# 		failure_position = (10, height - 20)        # Above uncertainty text
-	# 		reachability_position = (10, height - 30)        # Above uncertainty text
-
-	# 		# Add uncertainty text to the frame
-	# 		cv2.putText(frame_bgr, uncertainty_text, uncertainty_position, font, 
-	# 					font_scale, font_color, thickness, cv2.LINE_AA)
-			
-	# 		cv2.putText(frame_bgr, failure_text, failure_position, font, 
-	# 					font_scale, font_color, thickness, cv2.LINE_AA)
-
-	# 		# Add reachability text to the frame
-	# 		cv2.putText(frame_bgr, reachability_text, reachability_position, font, 
-	# 					font_scale, font_color, thickness, cv2.LINE_AA)
-
-	# 		# Write the modified frame to the video
-	# 		video_writer.write(frame_bgr)
-
-	# 	# Release the video writer
-	# 	video_writer.release()
-
-	# 	print(f"Video saved to {filename}")
-
-	# 	# self.save_episode(self.transitions, self.save_dir)
-
-	# 	self.reset_episode()
-
-	# 	return True
 
 	def save_episode(self, transitions, save_dir):
 		"""Save collected episode transitions to an .npz file."""
@@ -425,10 +328,8 @@ class TeleoperationWithWM:
 		self.keyboard.add_callback("L", self.reset_episode)
 
 		self.latent = self.reset_episode()
-		value_thr = -10 #-0.2 #0.05 # 0.0
-		uq_thr = 10 #4.0 #4.3
-
-		cnt = 0
+		value_thr = 0.0
+		uq_thr = 4.0 
 
 		fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 		axes[0].set_title("Predicted (Econ Prior)")
@@ -451,12 +352,6 @@ class TeleoperationWithWM:
 				inputs = torch.concat([feats, actions], -1)
 				uncertainty = self.ensemble.intrinsic_reward_penn(inputs).item()
 
-				uncertainty = 1 - self.density.calculate_likelihood(feats).item()
-
-				# reachability_value_Q1 = self.agent.critic1(feats, actions).item()
-				# reachability_value_Q2 = self.agent.critic2(feats, actions).item()
-				# reachability_value = min(reachability_value_Q1, reachability_value_Q2)
-
 				pred_next_latent = self.wm.dynamics.img_step(self.latent, actions)
 				pred_next_feat = self.wm.dynamics.get_feat(pred_next_latent)
 				next_best_act, log_prob = self.agent.select_action(pred_next_feat, eval_mode=True)
@@ -471,14 +366,7 @@ class TeleoperationWithWM:
 				# if (reachability_value < value_thr) :
 					new_actions, log_prob = self.agent.select_action(feats, eval_mode=True)
 
-					# Using a sampling for smooth action.
-					# new_action_samples, action_mean = self.agent.sample_actions(feats, n_action=50)
-					# action_norms = new_action_samples[:,:,:-1].norm(dim=-1)
-					# min_idx = torch.argmin(action_norms,dim=0)
-					# new_actions = new_action_samples[min_idx][0]
-
-					# actions = self.post_process_actions(new_actions)
-					actions[:, :6] = self.post_process_actions(new_actions)[:, :6] #/ 2
+					actions[:, :6] = self.post_process_actions(new_actions)[:, :6]
 					is_filtered = True
 					reachability_value_filtered = self.agent.critic1(feats, new_actions).item()
 					# self.latent = None
@@ -492,17 +380,8 @@ class TeleoperationWithWM:
 
 				next_obs, reward, done, info = self.env.step(actions)
 
-				# Update Latent
-				# cnt += 1
-				# if cnt % 20 == 0:
-				# 	self.latent = None
 				post, prior, recon_loss = self.forward_latent(latent_prev=self.latent, act_prev=actions, obs=next_obs)
 				self.latent = post
-
-				# recon_prior = self.wm.heads["decoder"](self.wm.dynamics.get_feat(prior).unsqueeze(0))["front_cam"].mode().squeeze()
-				# real_observation = next_obs['front_cam'].squeeze()
-
-				# self.visualize_recon(recon_prior, real_observation, fig, axes)
 				
 				for key, val in next_obs.items():
 					self.transitions[key].append(val[0].cpu().numpy())
@@ -551,8 +430,6 @@ if __name__ == "__main__":
 
 	yaml = yaml.YAML(typ="safe", pure=True)
 	configs = yaml.load(Path('source/latent_safety/reachability_dreamer/config_failure.yaml').read_text())
-	# configs = yaml.load(Path('source/latent_safety/reachability_dreamer/config_uqonly.yaml').read_text())
-	# configs = yaml.load(Path('source/latent_safety/reachability_dreamer/config_failure_hard.yaml').read_text())
 	name_list = ["defaults"]
 
 	defaults = {}

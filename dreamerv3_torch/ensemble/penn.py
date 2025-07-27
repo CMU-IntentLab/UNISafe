@@ -23,17 +23,6 @@ class EnsembleStochasticLinear(torch.nn.Module):
         self.explore_var = explore_var
         self.n_output = out_features
 
-        # self.lin1 = EnsembleLinear(in_features=in_features,
-        #                            out_features=hidden_features, ensemble_size=self.ensemble_size, bias=True, norm=norm)
-        # self.lin2 = EnsembleLinear(in_features=hidden_features,
-        #                            out_features=hidden_features * 2, ensemble_size=self.ensemble_size, bias=True, norm=norm)
-        # self.lin3 = EnsembleLinear(in_features=hidden_features * 2,
-        #                            out_features=hidden_features, ensemble_size=self.ensemble_size, bias=True, norm=norm)
-        # # self.lin4 = EnsembleLinear(in_features=hidden_features * 3,
-        # #                            out_features=hidden_features, ensemble_size=self.ensemble_size, bias=True, norm=norm)
-        # self.lin5 = EnsembleLinear(in_features=hidden_features,
-        #                            out_features=out_features*2, ensemble_size=self.ensemble_size, bias=True, norm=False)
-
         self.lin1 = EnsembleLinear(in_features=in_features,
                                    out_features=hidden_features, ensemble_size=self.ensemble_size, bias=True, norm=norm)
         self.lin2 = EnsembleLinear(in_features=hidden_features,

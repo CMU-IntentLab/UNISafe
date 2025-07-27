@@ -287,17 +287,8 @@ class TeleoperationWithWM:
 
 				next_obs, reward, done, info = self.env.step(actions)
 
-				# Update Latent
-				# cnt += 1
-				# if cnt % 20 == 0:
-				# 	self.latent = None
 				post, prior = self.forward_latent(latent_prev=self.latent, act_prev=actions, obs=next_obs)
 				self.latent = post
-
-				# recon_prior = self.wm.heads["decoder"](self.wm.dynamics.get_feat(prior).unsqueeze(0))["front_cam"].mode().squeeze()
-				# real_observation = next_obs['front_cam'].squeeze()
-
-				# self.visualize_recon(recon_prior, real_observation, fig, axes)
 
 				print("{:.4f}".format(uncertainty))
 
