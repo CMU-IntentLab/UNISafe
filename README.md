@@ -1,5 +1,5 @@
 <div align="center">
-    <h1><span style="color: #ff9500; font-style: italic; font-weight: bold;">UNISafe:</span> Uncertainty-aware Latent Safety Filters for Avoiding Out-of-Distribution Failures
+    <h1><span style="color: #ff9500; font-style: italic; font-weight: bold;">UNISafe:</span> Uncertainty-aware Latent Safety Filters for Avoiding Out-of-Distribution Failures (CoRL 2025)
 </h1>
     <a href="https://cmu-intentlab.github.io/UNISafe/">Homepage</a>
     <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -58,7 +58,7 @@ If you build upon this work, please consider citing our research.
 @article{seo2025uncertainty,
         title={Uncertainty-aware Latent Safety Filters for Avoiding Out-of-Distribution Failures},
         author={Seo, Junwon and Nakamura, Kensuke and Bajcsy, Andrea},
-        journal={arXiv preprint arXiv:2505.00779},
+        journal={Conference on Robot Learning (CoRL)},
         year={2025}
       }
 ```
