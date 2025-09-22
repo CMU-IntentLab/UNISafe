@@ -8,7 +8,7 @@ sys.path.append('latent_safety')
 import dreamerv3_torch.networks as networks
 import dreamerv3_torch.tools as tools
 import dreamerv3_torch.utils as utils
-from dreamerv3_torch.uncertainty import OneStepPredictor, DensityEstimator
+from dreamerv3_torch.uncertainty import OneStepPredictor
 
 to_np = lambda x: x.detach().cpu().numpy()
 
@@ -127,7 +127,7 @@ class WorldModel(nn.Module):
 		if 'failure_head' in self._config:
 			self._scales['failure'] =config.failure_head["loss_scale"]
 
-	def _train(self, data, ensemble: OneStepPredictor| None = None, flow: DensityEstimator| None = None):
+	def _train(self, data, ensemble: OneStepPredictor| None = None):
 		# action (batch_size, batch_length, act_dim)
 		# image (batch_size, batch_length, h, w, ch)
 		# reward (batch_size, batch_length)
@@ -210,20 +210,11 @@ class WorldModel(nn.Module):
 				ensemble_mets = ensemble.train_ensemble_penn_fixed(inputs, data["action"], target, data["is_first"])
 				metrics.update({k: v for k, v in ensemble_mets.items()})
 
-		# Normalizing Flow Training!
-		if flow is not None:
-			with tools.RequiresGrad(flow):
-				with torch.no_grad():
-					inputs = post["deter"]
-
-				flow_met = flow.train_density_estimator(inputs) 
-				metrics.update({k: v for k, v in flow_met.items()})    
-
 		post = {k: v.detach() for k, v in post.items()}
 
 		return post, context, metrics
 
-	def train_uncertainty_only(self, data, ensemble: OneStepPredictor| None = None, flow: DensityEstimator| None = None):
+	def train_uncertainty_only(self, data, ensemble: OneStepPredictor| None = None):
 		# action (batch_size, batch_length, act_dim)
 		# image (batch_size, batch_length, h, w, ch)
 		# reward (batch_size, batch_length)
@@ -257,14 +248,6 @@ class WorldModel(nn.Module):
 					ensemble_mets = ensemble.train_ensemble_penn_fixed(inputs, data["action"], target, data["is_first"])
 				metrics = ensemble_mets
 
-		# Normalizing Flow Training!
-		if flow is not None:
-			with tools.RequiresGrad(flow):
-				with torch.no_grad():
-					inputs = self.dynamics.get_feat(post)
-
-				metrics = flow.train_density_estimator(inputs) 
-				# metrics.update({k: v for k, v in flow_met.items()})    
 
 		post = {k: v.detach() for k, v in post.items()}
 
@@ -296,7 +279,7 @@ class WorldModel(nn.Module):
 
 		return obs
 
-	def video_pred(self, data, ensemble: OneStepPredictor| None = None, flow: DensityEstimator| None = None):
+	def video_pred(self, data, ensemble: OneStepPredictor| None = None):
 		data = self.preprocess(data)
 		embed = self.encoder(data)
 
@@ -343,16 +326,6 @@ class WorldModel(nn.Module):
 				
 			
 			video_pred = utils.concat_uncertainty_with_video(data, video_pred, disagreement_ensemble)
-
-		if flow is not None:
-			with torch.no_grad():
-				feat_post = self.dynamics.get_feat(states)
-				feat_prior = self.dynamics.get_feat(prior)
-				feat = torch.cat([feat_post, feat_prior], 1)
-				density = flow.calculate_likelihood(feat)
-				disagreement_density = 1 - density
-
-			video_pred = utils.concat_uncertainty_with_video(data, video_pred, disagreement_density, thr=0, max_val=1)
 
 		return video_pred
 

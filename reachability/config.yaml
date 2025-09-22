@@ -1,3 +1,15 @@
+# Reachability Configuration
+# 
+# This configuration file controls the training and evaluation of reachability-based
+# safety filters. Update the model_path and reachability_model_path with your
+# actual file locations after downloading the pretrained models.
+#
+# Quick Start:
+# 1. Download pretrained models: wget [DOWNLOAD_LINK] -o pretrained_models.zip && unzip pretrained_models.zip
+# 2. Update model_path: "latent_safety/log/dreamer.pt"  
+# 3. Update reachability_model_path: "latent_safety/log/filter"
+# 4. Update offline_traindir with your dataset paths
+#
 defaults:
   # RL paramters
   maxUpdates: 200000
@@ -15,18 +27,21 @@ defaults:
   model_free: False
   remark: 'test'
   rand_action: False
-  model_path: null
+  
+  # Model paths (update these with your actual paths)
+  model_path: "latent_safety/log/dreamer.pt"  # Path to pretrained world model
   offline_traindir: [
+    'latent_safety/log/dreamerv3/expert_2'# "path/to/your/dataset"  # Add your dataset paths here
   ]
   reachability_batch_size: 512
-  reachability_model_path: ''
+  reachability_model_path: "latent_safety/log/filter"  # Path to pretrained reachability filter
   gamma_reachability: 0.95
   ood_threshold: 4.0
   control_net: [512, 512, 512, 512]
   critic_net: [512, 512, 512, 512]
   stochastic_l: False
 
-  logdir: "latent_safety/reachability_dreamer/logs"
+  logdir: "latent_safety/log/reachability"
   traindir: null
   evaldir: null
   offline_evaldir: ''

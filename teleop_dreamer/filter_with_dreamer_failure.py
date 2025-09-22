@@ -12,7 +12,7 @@ import dreamerv3_torch.dreamer as dreamer
 import dreamerv3_torch.tools as tools
 import dreamerv3_torch.envs.wrappers as wrappers
 from dreamer_wrapper import DreamerVecEnvWrapper
-from reachability_dreamer.policy.SAC_Reachability_Env import SAC 
+from reachability.policy.SAC_Reachability_Env import SAC 
 from omni.isaac.lab.devices import Se3Keyboard, Se3SpaceMouse
 from omni.isaac.lab_tasks.utils import parse_env_cfg
 
@@ -72,12 +72,27 @@ class TeleoperationWithWM:
 
 	def load_world_model_and_ensemble(self):
 		"""
-		Load the world model (wm) and ensemble (if applicable).
+		Load the world model, ensemble, and reachability filter.
+		
+		This method loads all required models for safe teleoperation:
+		1. World model for environment simulation
+		2. Uncertainty ensemble for epistemic uncertainty estimation  
+		3. Reachability filter for safety interventions
 		"""
+		print("Loading world model and uncertainty ensemble...")
+		
+		# Configure action space
 		acts = self.env.single_action_space
 		acts.low = np.ones_like(acts.low) * -1
 		acts.high = np.ones_like(acts.high)
 		self.config.num_actions = acts.shape[0]
+
+		# Load world model
+		if not os.path.exists(self.config.model_path):
+			raise FileNotFoundError(
+				f"World model checkpoint not found at: {self.config.model_path}.\n"
+				f"Please ensure you have the pretrained world model file."
+			)
 
 		logger = dreamer.tools.DummyLogger(None, 1)
 
@@ -91,39 +106,58 @@ class TeleoperationWithWM:
 
 		agent.requires_grad_(requires_grad=False)
 
+		print(f"Loading world model from: {self.config.model_path}")
 		checkpoint = torch.load(self.config.model_path, map_location=torch.device('cpu'))
 		agent.load_state_dict(checkpoint["agent_state_dict"])
 
+		# Extract world model components
 		self.wm = agent._wm.to(self.device)
 		self.ensemble = agent._disag_ensemble.to(self.device)
 		self.density = agent._density_estimator.to(self.device)
 
-		print("World model and ensemble loaded.")
+		print("World model and ensemble loaded successfully.")
 
+		# Load reachability filter
+		print("Setting up reachability safety filter...")
+		
+		# Calculate state and action dimensions
 		if self.config.dyn_discrete:
-			stateDim = (self.config.dyn_stoch * self.config.dyn_discrete) + self.config.dyn_deter
+			state_dim = (self.config.dyn_stoch * self.config.dyn_discrete) + self.config.dyn_deter
 		else:
-			stateDim = self.config.dyn_stoch + self.config.dyn_deter
-		actionDim = self.config.num_actions
-		actor_dimList = self.config.control_net
-		critic_dimList = self.config.critic_net
+			state_dim = self.config.dyn_stoch + self.config.dyn_deter
+		action_dim = self.config.num_actions
+		actor_network_dims = self.config.control_net
+		critic_network_dims = self.config.critic_net
 
+		# Initialize safety filter
 		self.agent = SAC(
 			CONFIG=self.config,
-			dim_state=stateDim,
-			dim_action=actionDim,
-			actor_dimList=actor_dimList,
-			critic_dimList=critic_dimList
+			dim_state=state_dim,
+			dim_action=action_dim,
+			actor_dimList=actor_network_dims,
+			critic_dimList=critic_network_dims
 		)
 
-		# # ALL
-		step = 200000
-
-
-		if self.config.reachability_model_path:	
-			self.agent.restore(step, self.config.reachability_model_path)
-
-		print("Loaded Reachability RL Networks.")
+		# Load filter checkpoint if available
+		if hasattr(self.config, 'reachability_model_path') and self.config.reachability_model_path:
+			if os.path.exists(self.config.reachability_model_path):
+				filter_step = getattr(self.config, 'filter_step', 200000)
+				print(f"Loading reachability filter from: {self.config.reachability_model_path}")
+				print(f"Using filter checkpoint at step: {filter_step}")
+				
+				try:
+					self.agent.restore(filter_step, self.config.reachability_model_path)
+					print("Reachability filter loaded successfully!")
+					print("🛡️  Safety filter is ACTIVE - will intervene when detecting unsafe actions")
+				except Exception as e:
+					print(f"Warning: Error loading reachability filter: {e}")
+					print("Continuing without safety filter...")
+			else:
+				print(f"Warning: Reachability filter path not found: {self.config.reachability_model_path}")
+				print("Continuing without safety filter...")
+		else:
+			print("No reachability filter specified - running base policy only")
+			print("⚠️  WARNING: No safety filter active!")
 
 	def pre_process_actions(self, delta_pose: torch.Tensor, gripper_command: bool) -> torch.Tensor:
 		"""
@@ -412,41 +446,91 @@ def recursive_update(base, update):
 			base[key] = value
 
 if __name__ == "__main__":
-
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--configs", nargs="+")
-	parser.add_argument(
-	"--enable_cameras", action="store_true", default=True
-	)
-	parser.add_argument(
-	"--headless", action="store_true", default=True
-	)
-	parser.add_argument(
-		"--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
-	)
-	parser.add_argument("--task", type=str, default="Isaac-Takeoff-Franka-IK-Rel-v0", help="Name of the task.")
-	# parser.add_argument("--task", type=str, default="Isaac-Takeoff-Hard-Franka-IK-Rel-v0", help="Name of the task.")
+	"""
+	Interactive Teleoperation with Reachability Safety Filter
+	
+	This script allows manual teleoperation of a robotic system with an active
+	safety filter that intervenes when detecting potentially unsafe actions.
+	
+	Usage:
+		python filter_with_dreamer_failure.py \
+			--model_path "path/to/dreamer.pt" \
+			--reachability_model_path "path/to/filter" \
+			--enable_cameras
+	
+	Controls:
+		- WASD: Move in X-Y plane
+		- QE: Move up/down (Z axis)  
+		- RF: Rotate around Z axis
+		- K: Save current episode
+		- L: Reset without saving
+	"""
+	
+	parser = argparse.ArgumentParser(description="Interactive teleoperation with safety filter")
+	parser.add_argument("--configs", nargs="+", help="Configuration names to use")
+	parser.add_argument("--enable_cameras", action="store_true", default=True, help="Enable camera rendering")
+	parser.add_argument("--headless", action="store_true", default=False, help="Run in headless mode")
+	parser.add_argument("--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations")
+	parser.add_argument("--task", type=str, default="Isaac-Takeoff-Franka-IK-Rel-v0", help="Isaac environment task name")
+	
+	# Model path arguments for easy CLI usage
+	parser.add_argument("--model_path", type=str, help="Path to pretrained world model (dreamer.pt)")
+	parser.add_argument("--reachability_model_path", type=str, help="Path to pretrained reachability filter directory")
+	parser.add_argument("--filter_step", type=int, default=200000, help="Filter checkpoint step to load")
+	
 	config, remaining = parser.parse_known_args()
 
+	# Load default configuration
 	yaml = yaml.YAML(typ="safe", pure=True)
-	configs = yaml.load(Path('source/latent_safety/reachability_dreamer/config_failure.yaml').read_text())
-	name_list = ["defaults"]
+	config_path = Path('source/latent_safety/reachability_dreamer/config_failure.yaml')
+	
+	if not config_path.exists():
+		# Fallback to alternative path
+		config_path = Path('latent_safety/reachability/config.yaml')
+	
+	if config_path.exists():
+		configs = yaml.load(config_path.read_text())
+		name_list = ["defaults"]
+	else:
+		print(f"Warning: Configuration file not found. Using minimal defaults.")
+		configs = {"defaults": {}}
+		name_list = ["defaults"]
 
 	defaults = {}
 	for name in name_list:
-		recursive_update(defaults, configs[name])
+		if name in configs:
+			recursive_update(defaults, configs[name])
 	
 	# Merge CLI arguments into defaults
 	for key, value in vars(config).items():
 		if value is not None:
 			defaults[key] = value
 
-	parser = argparse.ArgumentParser()
+	# Create final parser with all configuration options
+	parser = argparse.ArgumentParser(description="Interactive teleoperation with safety filter")
 	for key, value in sorted(defaults.items(), key=lambda x: x[0]):
 		arg_type = tools.args_type(value)
 		parser.add_argument(f"--{key}", type=arg_type, default=arg_type(value))
 		
 	final_config = parser.parse_args(remaining)
+	
+	# Validate required paths
+	if not hasattr(final_config, 'model_path') or not final_config.model_path:
+		print("Error: --model_path is required. Please specify the path to the pretrained world model.")
+		print("Example: --model_path 'latent_safety/dreamer.pt'")
+		exit(1)
+	
+	if not os.path.exists(final_config.model_path):
+		print(f"Error: World model file not found: {final_config.model_path}")
+		print("Please ensure you have downloaded the pretrained models.")
+		exit(1)
+	
+	print("🎮 Starting Interactive Teleoperation with Safety Filter")
+	print("=" * 60)
+	print(f"World Model: {final_config.model_path}")
+	print(f"Safety Filter: {getattr(final_config, 'reachability_model_path', 'None (disabled)')}")
+	print(f"Task: {final_config.task}")
+	print("=" * 60)
 
 	teleop = TeleoperationWithWM(final_config)
 	teleop.run()

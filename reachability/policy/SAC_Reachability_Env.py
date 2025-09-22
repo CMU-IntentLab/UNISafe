@@ -20,8 +20,8 @@ from .utils import soft_update, save_model, StepLRMargin, GaussianNoise
 
 
 from .model import ActorProb, Critic, Net
-from reachability_dreamer.policy.takeoff.visualize import visualize_uncertainty_with_value
-import reachability_dreamer.env
+from reachability.policy.takeoff.visualize import visualize_uncertainty_with_value
+import reachability.env
 from copy import deepcopy
 
 

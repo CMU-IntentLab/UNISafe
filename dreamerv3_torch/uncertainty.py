@@ -5,8 +5,7 @@ from torch import distributions as torchd
 import sys
 sys.path.append('latent_safety')
 import dreamerv3_torch.tools as tools
-from dreamerv3_torch.ensemble.penn import EnsembleStochasticLinear, EnsembleStochasticLinearUnitVariance
-from dreamerv3_torch.ensemble.made import MaskedAutoregressiveFlow
+from dreamerv3_torch.ensemble.penn import EnsembleStochasticLinear 
 
 def clamp_preserve_gradients(x: torch.Tensor, lower: float, upper: float) -> torch.Tensor:
     """

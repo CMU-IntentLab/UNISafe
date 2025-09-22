@@ -11,7 +11,7 @@ from tqdm import trange
 import dreamerv3_torch.dreamer as dreamer
 import dreamerv3_torch.tools as tools
 
-sys.path.append('source/latent_safety')
+sys.path.append('latent_safety')
 from takeoff import mdp
 from takeoff.config import franka
 
@@ -127,7 +127,7 @@ def main(config):
 	# Load a pretrained model
 	if config.model_path:
 		checkpoint = torch.load(config.model_path)
-		agent.load_state_dict(checkpoint["agent_state_dict"])
+		agent.load_state_dict(checkpoint["agent_state_dict"], strict=False)
 		del checkpoint
 		torch.cuda.empty_cache()  # Clear GPU memory cache
 		agent._should_pretrain._once = False
@@ -172,7 +172,7 @@ def main(config):
 					)
 					if config.video_pred_log:
 						if config.use_ensemble:
-							video_pred = agent._wm.video_pred(next(eval_dataset), ensemble=agent._disag_ensemble, flow=agent._density_estimator)
+							video_pred = agent._wm.video_pred(next(eval_dataset), ensemble=agent._disag_ensemble)
 							logger.video("eval_openl", video_pred)
 						else:
 							video_pred = agent._wm.video_pred(next(eval_dataset))
@@ -251,4 +251,6 @@ if __name__ == "__main__":
 
 	main(final_config)
 
-	dreamer.simulation_app.close()
+	# Close simulation app if it exists (won't exist in Jupyter environments)
+	if hasattr(dreamer, 'simulation_app') and dreamer.simulation_app is not None:
+		dreamer.simulation_app.close()

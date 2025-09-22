@@ -6,7 +6,7 @@ defaults:
   use_unit_ensemble: False 
   use_nf: False
   remark: 'test'
-  logdir: 'latent_safety/dreamerv3_torch/logs/test'
+  logdir: 'latent_safety/log/dreamerv3'
   traindir: null
   evaldir: null
   offline_traindir: null

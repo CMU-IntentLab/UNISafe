@@ -1,11 +1,10 @@
 """
-Takeoff World Model with Failure Prediction Environment
+Takeoff World Model Environment
 
-An extended safety-critical reinforcement learning environment that combines
-world models, uncertainty quantification, and explicit failure prediction.
-This environment provides rewards based on both epistemic uncertainty and
-learned failure probabilities to encourage safe exploration while avoiding
-predicted failure states.
+A safety-critical reinforcement learning environment that uses world models
+and uncertainty quantification for safe exploration in takeoff scenarios.
+The environment provides rewards based on epistemic uncertainty to encourage
+exploration in safe regions and avoid out-of-distribution states.
 """
 
 from os import path
@@ -22,32 +21,27 @@ import math
 import random
 
 
-class Takeoff_WM_Failure(gym.Env):
+class Takeoff_WM(gym.Env):
     """
-    World Model-based Takeoff Environment with Failure Prediction.
+    World Model-based Takeoff Environment for Safe Reinforcement Learning.
     
-    This environment extends the base world model environment by incorporating
-    explicit failure prediction capabilities. It uses a trained failure classifier
-    to predict the probability of failure in different states and combines this
-    with epistemic uncertainty to create a comprehensive safety reward signal.
-    
-    The reward function can operate in two modes:
-    1. Failure-only: Uses only failure predictions for rewards
-    2. Combined: Uses both uncertainty quantification and failure predictions
+    This environment uses a pre-trained world model to simulate takeoff dynamics
+    and provides uncertainty-based rewards to encourage safe exploration.
+    The agent receives higher rewards for actions that maintain low epistemic
+    uncertainty, indicating confidence in the world model's predictions.
     
     Attributes:
         observation_space: Feature space from the world model (1536-dimensional)
         action_space: Joint action space (7-dimensional, bounded)
-        failure_threshold: Threshold for failure classification (default: 0.7)
-        config.use_uq: Flag to enable/disable uncertainty quantification in rewards
+        time_step: Simulation time step
+        threshold: Out-of-distribution threshold for uncertainty quantification
     """
     def __init__(self):
         """
-        Initialize the Takeoff World Model environment with failure prediction.
+        Initialize the Takeoff World Model environment.
         
         Sets up observation and action spaces, device configuration, and
-        environment parameters for safe exploration using world models and
-        explicit failure prediction.
+        environment parameters for safe exploration using world models.
         """
         self.render_mode = None
         self.time_step = 0.05  # Simulation time step in seconds
@@ -77,7 +71,6 @@ class Takeoff_WM_Failure(gym.Env):
         )
         
         self.image_size = 128  # Image size for rendering (if needed)
-        self.failure_threshold = 0.7  # Threshold for binary failure classification
         
         # World model components (initialized later via set_wm)
         self.config = None
@@ -118,55 +111,39 @@ class Takeoff_WM_Failure(gym.Env):
             self.feat_size = self.config.dyn_stoch + self.config.dyn_deter
     
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, torch.Tensor, bool, bool, Dict[str, Any]]:
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, bool, bool, Dict[str, Any]]:
         """
-        Execute one environment step using the world model and failure prediction.
+        Execute one environment step using the world model.
         
         Args:
             action: Action to take in the environment (shape: [7])
             
         Returns:
-            observation: Updated world model features 
-            reward: Combined uncertainty and failure-based reward
-            done: Episode termination flag (always False)
+            observation: Updated world model features (shape: [batch_size * seq_len, feat_size])
+            reward: Uncertainty-based reward encouraging safe exploration
+            done: Episode termination flag (always False for continuous operation)
             truncated: Episode truncation flag (always False)
             info: Additional information dictionary (empty)
         """
         with torch.no_grad():
             # Ensure action is detached from computation graph
             action_tensor = action.detach()
-
-            # Predict failure probability for current state
-            failure_probabilities = self.failure_classifier(self.feat)[:, 0]  # Shape: [batch_size]
             
-            # Transform failure probability to reward signal
-            # Higher failure probability leads to lower reward
-            failure_centered = 0.5 - failure_probabilities.clone()  # Center around 0
-            failure_reward = 1.5 * torch.tanh(failure_centered)  # Apply nonlinear transformation
-
-            # Determine final reward based on configuration
-            if self.config.use_uq:
-                # Combined mode: Use both uncertainty quantification and failure prediction
-                
-                # Calculate epistemic uncertainty for the current state-action pair
-                epistemic_uncertainty = self.calculate_uncertainty(self.feat, action_tensor)
-                uncertainty_reward = self.threshold - epistemic_uncertainty
-                
-                # Apply step function transformation to uncertainty rewards
-                processed_uncertainty = uncertainty_reward.clone()
-                processed_uncertainty[uncertainty_reward < -0.4] = -1.0  # High uncertainty penalty
-                processed_uncertainty[uncertainty_reward > 0.4] = 1.0    # Low uncertainty bonus
-                
-                # Combine uncertainty and failure rewards (take minimum for safety)
-                final_reward = self.calculate_reward(processed_uncertainty, failure_reward)
-            else:
-                # Failure-only mode: Use only failure prediction for rewards
-                final_reward = failure_reward
+            # Calculate epistemic uncertainty for the current state-action pair
+            epistemic_uncertainty = self.calculate_uncertainty(self.feat, action_tensor)
             
-            # Alternative: Use only uncertainty (commented out)
-            # final_reward = processed_uncertainty
-           
+            # Convert uncertainty to reward: higher uncertainty = lower reward
+            # This encourages the agent to stay in regions where the model is confident
+            raw_reward = self.threshold - epistemic_uncertainty
+
+            # Apply step function transformation to create discrete reward levels
+            # This creates three reward levels: -1.0, original, 1.0
+            processed_reward = raw_reward.copy()
+            processed_reward[raw_reward < -0.4] = -1.0  # High uncertainty penalty
+            processed_reward[raw_reward > 0.4] = 1.0    # Low uncertainty bonus
+            
             # Update world model state by taking the action
+            # Reshape action for batch processing
             batched_action = action_tensor.reshape(
                 (self.config.batch_size, self.config.batch_length, -1)
             )
@@ -185,7 +162,7 @@ class Takeoff_WM_Failure(gym.Env):
             truncated = False
             info = {}
 
-        return self.feat.cpu().numpy(), final_reward, done, truncated, info
+        return self.feat.cpu().numpy(), processed_reward, done, truncated, info
     
     def reset(self, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
@@ -215,11 +192,19 @@ class Takeoff_WM_Failure(gym.Env):
             encoded_observations = self.wm.encoder(preprocessed_data)
             
             # Use the world model dynamics to observe and create initial latent state
+            # This processes the sequence of observations and actions to create
+            # a coherent latent state representation
             self.latent, _ = self.wm.dynamics.observe(
                 encoded_observations, 
                 preprocessed_data["action"], 
                 preprocessed_data["is_first"]
             )
+
+            # Alternative: Sample a random timestep from the trajectory (currently disabled)
+            # This could be used to start from a random point in the trajectory
+            # random_idx = random.randint(0, self.config.batch_length - 1)
+            # for state_key, state_value in self.latent.items(): 
+            #     self.latent[state_key] = state_value[:, [random_idx]]
 
             # Extract feature representation from the latent state
             self.feat = self.wm.dynamics.get_feat(self.latent)
@@ -228,10 +213,9 @@ class Takeoff_WM_Failure(gym.Env):
             )
 
         return self.feat.cpu().numpy(), {}
-    
 
       
-    def calculate_uncertainty(self, features: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+    def calculate_uncertainty(self, features: torch.Tensor, action: torch.Tensor) -> np.ndarray:
         """
         Calculate epistemic uncertainty for a given state-action pair.
         
@@ -244,54 +228,16 @@ class Takeoff_WM_Failure(gym.Env):
             action: Action to evaluate
             
         Returns:
-            epistemic_uncertainty: Uncertainty estimates for each sample (on GPU)
+            epistemic_uncertainty: Uncertainty estimates for each sample
         """
         with torch.no_grad():
             # Concatenate features and actions to create input for uncertainty estimation
             state_action_input = torch.concat([features, action], dim=-1)
             
             # Use ensemble model to estimate epistemic uncertainty
+            # The intrinsic_reward_penn method returns uncertainty estimates
             uncertainty_estimates = self.ensemble.intrinsic_reward_penn(state_action_input)
             
-            # Return uncertainty values (keep on GPU for further processing)
-            return uncertainty_estimates[:, 0]
-        
-    
-    def failure_classifier(self, features: torch.Tensor) -> torch.Tensor:
-        """
-        Predict failure probability for given features using the world model's failure head.
-        
-        Args:
-            features: World model features (latent state representation)
-            
-        Returns:
-            failure_probabilities: Failure probabilities in range [0, 1] for each sample
-        """
-        with torch.no_grad():
-            # Use the pre-trained failure head from the world model
-            failure_distribution = self.wm.heads["failure"](features)
-            
-            # Extract mean of the Bernoulli distribution (failure probability)
-            failure_probabilities = failure_distribution.mean  # Shape: [batch_size, seq_len, 1]
-
-            return failure_probabilities
-
-    def calculate_reward(self, uncertainty_reward: torch.Tensor, failure_reward: torch.Tensor) -> torch.Tensor:
-        """
-        Combine uncertainty and failure rewards using a conservative (minimum) approach.
-        
-        This conservative approach ensures that the agent receives low rewards if either
-        the uncertainty is high OR the failure probability is high, promoting safe
-        exploration that avoids both uncertain and likely-to-fail regions.
-        
-        Args:
-            uncertainty_reward: Reward based on epistemic uncertainty
-            failure_reward: Reward based on failure prediction
-            
-        Returns:
-            combined_reward: Final reward signal combining both safety signals
-        """
-        # Take element-wise minimum for conservative safety behavior
-        combined_reward = torch.minimum(uncertainty_reward, failure_reward)
-        
-        return combined_reward
+            # Extract the uncertainty values and move to CPU
+            return uncertainty_estimates[:, 0].cpu().numpy()
+ 

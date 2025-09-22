@@ -1,15 +1,33 @@
 import argparse
+import os
 from omni.isaac.lab.app import AppLauncher
-# add argparse arguments
-parser = argparse.ArgumentParser(description="Isaac Lab environments.")
-# append AppLauncher cli args
-AppLauncher.add_app_launcher_args(parser)
-# parse the arguments
-args_cli, remaining = parser.parse_known_args()
 
-# launch omniverse app
-app_launcher = AppLauncher(args_cli)
-simulation_app = app_launcher.app
+# Check if simulation app is already running (e.g., from Jupyter notebook)
+def _is_app_already_running():
+    try:
+        import omni.kit.app
+        return omni.kit.app.get_app() is not None
+    except:
+        return False
+
+_APP_ALREADY_RUNNING = _is_app_already_running() or os.environ.get("ISAAC_JUPYTER_KERNEL", "0") == "1"
+
+# Only launch app if no app is already running
+if not _APP_ALREADY_RUNNING:
+    # add argparse arguments
+    parser = argparse.ArgumentParser(description="Isaac Lab environments.")
+    # append AppLauncher cli args
+    AppLauncher.add_app_launcher_args(parser)
+    # parse the arguments
+    args_cli, remaining = parser.parse_known_args()
+
+    # launch omniverse app
+    app_launcher = AppLauncher(args_cli)
+    simulation_app = app_launcher.app
+else:
+    # App is already running (e.g., from Jupyter notebook)
+    simulation_app = None
+    print("[INFO] Simulation app already running - skipping duplicate launch")
 
 import functools
 import os
@@ -86,15 +104,9 @@ class Dreamer(nn.Module):
 		if config.use_ensemble:
 			self._disag_ensemble = uncertainty.OneStepPredictor(config, self._wm)
 
-			if config.use_unit_ensemble:
-				self._disag_ensemble = uncertainty.OneStepPredictorUnitVariance(config, self._wm)
 		else:
 			self._disag_ensemble = None
 
-		if config.use_nf:
-			self._density_estimator = uncertainty.DensityEstimator(config)
-		else:
-			self._density_estimator = None
 
 	def __call__(self, obs, reset, state=None, training=True):
 		step = self._step
@@ -114,7 +126,7 @@ class Dreamer(nn.Module):
 					self._metrics[name] = []
 				if self._config.video_pred_log:
 					if self._config.use_ensemble:
-						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble, flow=self._density_estimator)
+						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble)
 						self._logger.video("train_openl", video_pred)
 					else:
 						openl = self._wm.video_pred(next(self._dataset))
@@ -138,7 +150,7 @@ class Dreamer(nn.Module):
 			if (step+1) % 1000 == 0:
 				if self._config.video_pred_log:
 					if self._config.use_ensemble:
-						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble, flow=self._density_estimator)
+						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble)
 						self._logger.video("train_openl", video_pred)
 					else:
 						openl = self._wm.video_pred(next(self._dataset))
@@ -154,43 +166,18 @@ class Dreamer(nn.Module):
 			self._step += 1
 			self._logger.step = self._step
 
-	def train_actor_only(self, training=True):
-		step = self._step
-		if training:
-			self._train_actor_only(next(self._dataset))
-			self._update_count += 1
-			self._metrics["update_count"] = self._update_count
-
-			if (step+1) % 1000 == 0:
-				if self._config.video_pred_log:
-					if self._config.use_ensemble:
-						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble, flow=self._density_estimator)
-						self._logger.video("train_openl", video_pred)
-					else:
-						openl = self._wm.video_pred(next(self._dataset))
-						self._logger.video("train_openl", to_np(openl))
-
-			for name, values in self._metrics.items():
-				self._logger.scalar(name, float(np.mean(values)))
-				self._metrics[name] = []
-
-			self._logger.write(fps=True, print_cli=False)
-
-		if training:
-			self._step += 1
-			self._logger.step = self._step
 	
 	def train_uncertainty_only(self, training=True):
 		step = self._step
 		if training:
-			met = self._wm.train_uncertainty_only(data=next(self._dataset), ensemble=self._disag_ensemble, flow=self._density_estimator)
+			met = self._wm.train_uncertainty_only(data=next(self._dataset), ensemble=self._disag_ensemble)
 			self._update_count += 1
 			self._metrics["update_count"] = self._update_count
 
 			if (step+1) % 1000 == 0:
 				if self._config.video_pred_log:
 					if self._config.use_ensemble:
-						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble, flow=self._density_estimator)
+						video_pred = self._wm.video_pred(next(self._dataset), ensemble=self._disag_ensemble)
 						self._logger.video("train_openl", video_pred)
 					else:
 						openl = self._wm.video_pred(next(self._dataset))
@@ -245,7 +232,7 @@ class Dreamer(nn.Module):
 
 	def _train(self, data):
 		metrics = {}
-		post, context, mets = self._wm._train(data, ensemble=self._disag_ensemble, flow=self._density_estimator)
+		post, context, mets = self._wm._train(data, ensemble=self._disag_ensemble)
 		metrics.update(mets)
 		start = post
 		reward = lambda f, s, a: self._wm.heads["reward"](
@@ -262,36 +249,6 @@ class Dreamer(nn.Module):
 				self._metrics[name] = [value]
 			else:
 				self._metrics[name].append(value)
-
-	def _train_actor_only(self, data):
-
-		with torch.no_grad():
-			data = self._wm.preprocess(data)
-			embed = self._wm.encoder(data)
-			post, prior = self._wm.dynamics.observe(
-						embed, data["action"], data["is_first"]
-					)
-
-		post = {k: v.detach() for k, v in post.items()}
-		metrics = {}
-		start = post
-		reward = lambda f, s, a: self._wm.heads["reward"](
-			self._wm.dynamics.get_feat(s)
-		).mode()
-
-		if self._config.pessimistic:
-			ensemble = self._disag_ensemble
-		else:
-			ensemble = None
-			
-		metrics.update(self._task_behavior._train(start, reward, ensemble)[-1])
-		
-		for name, value in metrics.items():
-			if not name in self._metrics.keys():
-				self._metrics[name] = [value]
-			else:
-				self._metrics[name].append(value)
-
 
 
 def count_steps(folder):

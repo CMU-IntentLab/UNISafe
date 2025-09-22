@@ -24,27 +24,6 @@ class DreamerVecEnvWrapper(IVecEnv):
 		self.ac_lim = 0.15
 		self.device = device
 
-	# @property
-	# def observation_space(self):
-	# 	if self._obs_is_dict:
-	# 		spaces = self._env.observation_space.spaces.copy()
-	# 		pol_space = gym.spaces.Box(spaces['policy']['eef_pos'].low, spaces['policy']['eef_pos'].high, spaces['policy']['eef_pos'].shape, dtype=spaces['policy']['eef_pos'].dtype)
-	# 		img_space = gym.spaces.Box(np.zeros_like(spaces['image'].low), 255*np.ones_like(spaces['image'].high), spaces['image'].shape, dtype='uint8')
-	# 		spaces = {"policy": pol_space, "image": img_space}
-
-	# 	else:
-	# 		spaces = {self._obs_key: self._env.observation_space}
-			
-
-	# 	return gym.spaces.Dict(
-	# 		{
-	# 			**spaces,
-	# 			"is_first": gym.spaces.Box(0, 1, (), dtype=bool),
-	# 			"is_last": gym.spaces.Box(0, 1, (), dtype=bool),
-	# 			"is_terminal": gym.spaces.Box(0, 1, (), dtype=bool),
-	# 		}
-	# 	)
-
 	@property
 	def get_takeoff_obs_space(self):
 		return self._env.observation_space.spaces.copy()

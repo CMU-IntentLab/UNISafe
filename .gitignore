@@ -62,3 +62,7 @@ _build
 **/expert/*
 **/datasets/*
 *.zarr
+
+log
+*.pt
+**/log/*
