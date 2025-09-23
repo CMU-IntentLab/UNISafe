@@ -1,3 +1,45 @@
+<div align="center">
+    <h1><span style="color: #ff9500; font-style: italic; font-weight: bold;">UNISafe:</span> Uncertainty-aware Latent Safety Filters for Avoiding Out-of-Distribution Failures (CoRL 2025)
+</h1>
+    <a href="https://cmu-intentlab.github.io/UNISafe/">Homepage</a>
+    <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+    <a href="https://www.arxiv.org/abs/2505.00779">Paper</a>
+    <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+    <a href="https://youtu.be/Li9jCixTPXw">Video</a>
+    <br />
+</div>
+
+---
+
+This is a repository for [Uncertainty-aware Latent Safety Filters for Avoiding Out-of-Distribution Failures](https://cmu-intentlab.github.io/UNISafe/).   
+
+<p align="center">
+ <img width="1200" src="main.png" style="background-color:white;" alt="framework">
+ <br />
+ <em></em>
+</p>
+
+## 📂 Code Structure
+
+```bash
+git clone https://github.com/CMU-IntentLab/UNISafe.git
+cd UNISafe
+```
+
+The project is organized into separate branches:
+
+* **`dubins`**: 3D Dubins Car. [Link](https://github.com/CMU-IntentLab/UNISafe/tree/dubins)
+
+```bash
+git checkout dubins
+```
+
+* **`isaaclab`**: Block-plucking tasks implemented in NVIDIA IsaacLab. [Link](https://github.com/CMU-IntentLab/UNISafe/tree/isaaclab)
+
+```bash
+git checkout isaaclab
+```
+
 # 🛡️ Latent Safety with Reachability Analysis
 
 This repository provides the implementation of **Uncertainty-aware Latent Safety Filters** for avoiding out-of-distribution failures in robotics tasks using [Isaac Lab](https://isaac-sim.github.io/IsaacLab/).
@@ -53,9 +95,33 @@ latent_safety/
 
 ---
 
-## 🚀 Quick Evaluation with Pretrained Models
+### 📝 Safety Filtering in Jupyter Notebook
 
-Once you have the pretrained models, you can immediately start evaluating. **Note**: The evaluation uses the policy learned within the world model during training - there is no separate policy model file.
+You can quickly test UNISafe using our provided Jupyter notebook!  
+
+- **How it works:**  
+  - The notebook loads a sample sequence (there are three sample sequences in `\log`).
+  - For each sequence, actions are replayed in the simulator with the safety filter enabled.
+  - Note that the episode automatically resets when the agent either succeeds or fails.
+  - You can also save the episode and re-run it for further analysis.
+
+#### 👉 Try it out:
+
+1. Launch Jupyter Lab:
+    ```bash
+    jupyter lab
+    ```
+2. Open and run:  
+   `latent_safety/safety_filter_demo.ipynb`
+
+3. Follow the instructions in the notebook to:
+    - Select a sample sequence
+    - Step through the episode and watch the filter in action
+    - Save and reload episodes for further testing
+
+This is the easiest way to get started and see the safety filter working—no coding required!
+
+---
 
 <!-- ### 1. 📊 Quantitative Evaluation
 

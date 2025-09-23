@@ -63,6 +63,7 @@ _build
 **/datasets/*
 *.zarr
 
-log
+# log
 *.pt
-**/log/*
+**/log/dreamerv3
+**/log/reachability
