@@ -19,7 +19,9 @@ This is a repository for [Uncertainty-aware Latent Safety Filters for Avoiding O
  <em></em>
 </p>
 
-## 📂 Code Structure
+---
+
+## Code Structure
 
 ```bash
 git clone https://github.com/CMU-IntentLab/UNISafe.git
@@ -40,13 +42,11 @@ git checkout dubins
 git checkout isaaclab
 ```
 
-# 🛡️ Latent Safety with Reachability Analysis
-
 This repository provides the implementation of **Uncertainty-aware Latent Safety Filters** for avoiding out-of-distribution failures in robotics tasks using [Isaac Lab](https://isaac-sim.github.io/IsaacLab/).
 
 ---
 
-## 📦 Installation
+## Installation
 
 1. **Install Isaac Lab**  
    Follow the official [Isaac Lab Installation Guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html). (This repo uses stale isaacsim version 4.2.0, while the latests version is 5.x.x. We are working on updating the code to the latest version, and it only requires changing some of the import paths.)
@@ -66,9 +66,9 @@ conda activate isaaclab
 
 ---
 
-## 📥 Quick Start: Download Pretrained Models
+## Quick Start: Download Pretrained Models
 
-For immediate evaluation and experimentation, download our pretrained models:[pretrained models](https://drive.google.com/file/d/1RddRw3eVUhufuUdq_BAThjwvO1fsmTeM/view?usp=sharing)
+You can download pretrained models: [pretrained models](https://drive.google.com/file/d/1RddRw3eVUhufuUdq_BAThjwvO1fsmTeM/view?usp=sharing).
 ```bash
 # Download pretrained models (world model + reachability filter)
 pip install gdown
@@ -138,7 +138,7 @@ python latent_safety/reachability/evaluate_reachability_filter.py \
     --num_episodes 100
 ``` -->
 
-### 🎮 Qualitative Evaluation with Teleoperation
+### Qualitative Evaluation with Teleoperation
 
 Experience the safety filter interactively:
 
@@ -158,11 +158,11 @@ python latent_safety/teleop_dreamer/filter_with_dreamer_failure.py \
 
 ---
 
-## 🏗️ Full Training Pipeline
+##  Full Training Pipeline
 
 For training your own models from scratch:
 
-### 1. 🗂️ Data Collection (Optional)
+### 1. Data Collection (Optional)
 
 You can collect your own demonstrations or use our provided datasets.
 
@@ -183,7 +183,7 @@ Download our curated datasets:
 unzip dataset.zip -d datasets/
 ```
 
-### 2. 🧠 World Model Training
+### 2. World Model Training
 
 Train the world model (Dreamer) with both dynamics and policy learning:
 
@@ -201,18 +201,12 @@ model_only: true
 model_only: false
 ```
 
-**Important**: The world model training learns both:
-1. **World dynamics** (environment simulation)
-2. **Base policy** (task execution through imagination)
-3. **Failure prediction** (safety classification)
-4. **Uncertainty estimation** (epistemic uncertainty through ensemble)
-
 **Optional Ensemble Fine-tuning**: After world model training, fine-tune the uncertainty ensemble:
 - Uncomment `agent.train_uncertainty_only(training=True)` in `train_dreamer.py`
 - Comment out `agent.train_model_only(training=True)`
 - Train for additional 200K iterations
 
-### 3. 🛡️ Reachability Filter Training
+### 3. Reachability RL Training
 
 Train safety filters using the learned world model:
 
@@ -225,7 +219,7 @@ python latent_safety/reachability/train_reachability_sac_with_failure_prediction
     --configs failure_filter
 ```
 
-#### Option B: Uncertainty-Only Filter  
+#### Option B: Uncertainty-Only Filter (Using Success Data Only) 
 ```bash
 python latent_safety/reachability/train_reachability_sac_uncertainty_only.py \
     --headless \
@@ -258,7 +252,7 @@ python latent_safety/reachability/evaluate_reachability_filter.py \
     --model_path "latent_safety/log/dreamer.pt" \
     --policy_model_path "learned_dreamer_policy_path" \
     --reachability_model_path "latent_safety/log/filter" \
-    --num_episodes 100 \
+    --num_episodes 1000 \
     --is_filter true
 ```
 
@@ -273,57 +267,7 @@ python latent_safety/teleop_dreamer/filter_with_dreamer_failure.py \
     --reachability_model_path "latent_safety/log/filter"
 ```
 
-#### Base Policy Rollouts (No Filter)
-```bash
-python latent_safety/teleop_dreamer/rollout_with_dreamer.py \
-    --enable_cameras \
-    --model_path "path/to/dreamer.pt"
-```
-
 ---
-
-## 🔧 Configuration Guide
-
-### World Model Configuration (`dreamerv3_torch/configs.yaml`)
-```yaml
-defaults:
-  # Training mode
-  model_only: true              # true for offline, false for online
-  
-  # Data paths
-  offline_traindir: ["path/to/dataset"]
-  
-  # Model architecture
-  dyn_stoch: 32                 # Stochastic state size
-  dyn_deter: 512                # Deterministic state size
-  dyn_discrete: 32              # Discrete components
-  
-  # Training
-  train_steps: 1000000          # Total training steps
-  batch_size: 16                # Batch size
-  batch_length: 64              # Sequence length
-```
-
-### Reachability Filter Configuration (`reachability/config.yaml`)
-```yaml
-defaults:
-  # Model paths
-  model_path: "path/to/dreamer.pt"
-  offline_traindir: ["path/to/dataset"]
-  
-  # Network architecture
-  control_net: [256, 256]       # Actor network
-  critic_net: [256, 256]        # Critic network
-  
-  # Training parameters
-  maxUpdates: 200000            # Training updates
-  checkPeriod: 10000            # Checkpoint frequency
-  
-  # Safety parameters
-  ood_threshold: 0.5            # Uncertainty threshold
-  use_uq: true                  # Enable uncertainty quantification
-```
-
 
 ## 🙏 Acknowledgements
 
